@@ -1,0 +1,2727 @@
+{
+    "annotations": {
+      "list": [
+        {
+          "builtIn": 1,
+          "datasource": {
+            "type": "grafana",
+            "uid": "-- Grafana --"
+          },
+          "enable": true,
+          "hide": true,
+          "iconColor": "rgba(0, 211, 255, 1)",
+          "name": "Annotations & Alerts",
+          "type": "dashboard"
+        }
+      ]
+    },
+    "editable": true,
+    "fiscalYearStartMonth": 0,
+    "graphTooltip": 0,
+    "id": 27,
+    "links": [],
+    "panels": [
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 0
+        },
+        "id": 21,
+        "panels": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    }
+                  ]
+                },
+                "unit": "short"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "_time"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "dateTimeFromNow"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Status"
+                  },
+                  "properties": [
+                    {
+                      "id": "mappings",
+                      "value": [
+                        {
+                          "options": {
+                            "Offline": {
+                              "color": "dark-red",
+                              "index": 0
+                            }
+                          },
+                          "type": "value"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 3,
+              "w": 8,
+              "x": 0,
+              "y": 1
+            },
+            "id": 23,
+            "maxDataPoints": 1000000,
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "/.*/",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "auto",
+              "wideLayout": true
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "E2kf7BY4k"
+                },
+                "hide": false,
+                "query": "from(bucket: \"${Bucket}\")\n  |> range(start: -90d)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\n  |> filter(fn: (r) =>  r[\"_field\"] == \"CpuProcessorUtility\" )\n  |> last()\n  |> map(fn: (r) => ({\n        _time: r._time,\n        _measurement: r._measurement,\n        Status: if exists r._value and (uint(v: now()) - uint(v: r._time)) < 60000000000 then \"Live\" else \"Offline\"\n    }))\n  |> yield(name: \"uptime_on_off\")\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Agent Status",
+            "transformations": [
+              {
+                "id": "organize",
+                "options": {
+                  "excludeByName": {
+                    "CPU Total": false
+                  },
+                  "includeByName": {},
+                  "indexByName": {},
+                  "renameByName": {
+                    "CPU Total": "Status",
+                    "Time": "Data Received",
+                    "_time": "Data Received",
+                    "status": "Status"
+                  }
+                }
+              }
+            ],
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "decimals": 1,
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    }
+                  ]
+                },
+                "unit": "s"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 4,
+              "w": 2,
+              "x": 8,
+              "y": 1
+            },
+            "id": 24,
+            "maxDataPoints": 100,
+            "options": {
+              "colorMode": "background",
+              "graphMode": "none",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "last"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "value",
+              "wideLayout": true
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "edgaf6tnp6gw0f"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"SystemUpTime\")\r\n  |> last()\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Uptime",
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)"
+                    },
+                    {
+                      "color": "red",
+                      "value": 11
+                    }
+                  ]
+                },
+                "unit": "volt"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Voltage"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Battery Voltage"
+                    },
+                    {
+                      "id": "unit",
+                      "value": "volt"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Battery Capacity (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "unit",
+                      "value": "percent"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 4,
+              "w": 2,
+              "x": 10,
+              "y": 1
+            },
+            "id": 15,
+            "maxDataPoints": 1000000,
+            "options": {
+              "colorMode": "background",
+              "graphMode": "area",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "value_and_name",
+              "wideLayout": true
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "edgaf6tnp6gw0f"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Battery\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Voltage\")\r\n",
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "edgaf6tnp6gw0f"
+                },
+                "hide": false,
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Designed Capacity\" or r[\"_field\"] == \"Full Charged Capacity\")\r\n\r\n  |> last()\r\n  |> distinct(column: \"_value\")\r\n  |> group(columns: [\"_time\"])\r\n  |> pivot(rowKey:[\"_measurement\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> map(fn: (r) => {\r\n      batteryPercentage = if exists r[\"Full Charged Capacity\"] and exists r[\"Designed Capacity\"] and r[\"Designed Capacity\"] != 0.0 then (float(v: r[\"Full Charged Capacity\"]) / float(v: r[\"Designed Capacity\"])) * 100.0 else 0.0\r\n      return {\r\n          _measurement: r._measurement,\r\n          \"Battery Capacity (%)\": batteryPercentage\r\n      }\r\n  })",
+                "refId": "B"
+              }
+            ],
+            "transparent": true,
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "decimals": 0,
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)"
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Threads System"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Running Threads"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 2,
+              "x": 12,
+              "y": 1
+            },
+            "id": 32,
+            "maxDataPoints": 1000000,
+            "options": {
+              "colorMode": "background",
+              "graphMode": "area",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "value_and_name",
+              "wideLayout": true
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "E2kf7BY4k"
+                },
+                "dsType": "influxdb",
+                "groupBy": [
+                  {
+                    "params": [
+                      "$interval"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "params": [
+                      "null"
+                    ],
+                    "type": "fill"
+                  }
+                ],
+                "measurement": "processes",
+                "policy": "default",
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\" or r[\"Metrics_type\"] == \"Disk\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"ProcessorQueueLength\" or r[\"_field\"] == \"CurrentDiskQueueLength\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n  |> last()",
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "total_threads"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "last"
+                    }
+                  ]
+                ],
+                "tags": [
+                  {
+                    "key": "host",
+                    "operator": "=~",
+                    "value": "/^$server$/"
+                  }
+                ]
+              }
+            ],
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "green",
+                      "value": 60
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 70
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 80
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%) L-AC91A1B9DC0F"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Used Memory"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Used CPU (%)"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Disk Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Used Space (%)"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 10,
+              "x": 14,
+              "y": 1
+            },
+            "id": 10,
+            "options": {
+              "minVizHeight": 75,
+              "minVizWidth": 75,
+              "orientation": "auto",
+              "reduceOptions": {
+                "calcs": [],
+                "fields": "",
+                "values": true
+              },
+              "showThresholdLabels": false,
+              "showThresholdMarkers": true,
+              "sizing": "auto"
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Memory\" or r[\"Metrics_type\"] == \"Processor\" or r[\"Metrics_type\"] == \"Disk\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"CpuProcessorUtility\" or r[\"_field\"] == \"MemoryUsagePercentage\" or r[\"_field\"] == \"DiskSpaceUsagePercentage\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n  |> last()\r\n  |> last()\r\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> keep(columns: [\"_time\", \"Device_id\", \"CpuProcessorUtility\", \"MemoryUsagePercentage\", \"DiskSpaceUsagePercentage\"])\r\n  |> rename(columns: {\r\n      \"_time\": \"Time\",\r\n      \"CpuProcessorUtility\": \"CPU Usage (%)\",\r\n      \"DiskSpaceUsagePercentage\": \"Disk Usage (%)\",\r\n      \"MemoryUsagePercentage\": \"Memory Usage (%)\"\r\n  })\r\n",
+                "refId": "A"
+              },
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "edgaf6tnp6gw0f"
+                },
+                "hide": false,
+                "query": "",
+                "refId": "B"
+              }
+            ],
+            "title": "Current Resource Utilization",
+            "transformations": [
+              {
+                "id": "joinByField",
+                "options": {
+                  "byField": "Time",
+                  "mode": "inner"
+                }
+              },
+              {
+                "id": "filterFieldsByName",
+                "options": {
+                  "byVariable": false
+                }
+              },
+              {
+                "id": "organize",
+                "options": {
+                  "excludeByName": {
+                    "Time": true
+                  },
+                  "includeByName": {},
+                  "indexByName": {
+                    "CPU Usage (%) L-AC91A1B9DC0F": 1,
+                    "Disk Usage (%) L-AC91A1B9DC0F": 3,
+                    "Memory Usage (%) L-AC91A1B9DC0F": 2,
+                    "Time L-AC91A1B9DC0F": 0
+                  },
+                  "renameByName": {
+                    "CPU Usage (%) HGT-LP335": "CPU Usage (%)",
+                    "Disk Usage (%) HGT-LP335": "Disk Usage (%)",
+                    "Memory Usage (%) HGT-LP335": "Memory Usage (%)",
+                    "PDUsagePercentage": "Used Space"
+                  }
+                }
+              },
+              {
+                "id": "reduce",
+                "options": {
+                  "includeTimeField": false,
+                  "mode": "reduceFields",
+                  "reducers": [
+                    "lastNotNull"
+                  ]
+                }
+              }
+            ],
+            "type": "gauge"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "custom": {
+                  "align": "center",
+                  "cellOptions": {
+                    "type": "auto"
+                  },
+                  "filterable": false,
+                  "inspect": false
+                },
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "red",
+                      "value": 80
+                    }
+                  ]
+                }
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 15,
+              "w": 8,
+              "x": 0,
+              "y": 4
+            },
+            "id": 19,
+            "maxDataPoints": 100,
+            "options": {
+              "cellHeight": "md",
+              "footer": {
+                "countRows": false,
+                "enablePagination": false,
+                "fields": "",
+                "reducer": [
+                  "sum"
+                ],
+                "show": false
+              },
+              "frameIndex": 14,
+              "showHeader": false
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "edgaf6tnp6gw0f"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: -10d)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"SystemInfo\")\r\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> keep(columns: [\"_time\", \"CSName\", \"Model\", \"Manufacturer\",  \r\n                    \"BiosName\", \"ProcessorName\", \"ProcessorCores\", \"TotalDiskSizeGB\",\"ProcessorLogicalProcessors\", \"OSArchitecture\", \"OSInstallDate\", \"OSName\", \r\n                    \"TotalMemoryGB\", \"PowerPlanName\", \"ProcessorMaxClockSpeed\"])\r\n    |> rename(columns: {\r\n      Model: \"Model Name\",\r\n      Manufacturer: \"Manufacturer\",\r\n      TotalDiskSizeGB: \"Disk Size (GB)\",\r\n      CSName: \"Device Name\",\r\n      BiosName: \"BIOS Version\",\r\n      ProcessorName: \"Processor\",\r\n      ProcessorMaxClockSpeed: \"Processor Max Speed\",\r\n      ProcessorCores: \"Processor Cores (Physical)\",\r\n      ProcessorLogicalProcessors: \"Processor Cores (Virtual)\",\r\n      OSArchitecture: \"System Architecture\",\r\n      OSInstallDate: \"OS Installation Date\",\r\n      OSName: \"Operating System\",\r\n      TotalMemoryGB: \"RAM Size (GB)\",\r\n      PowerPlanName: \"Power Plan\"\r\n  })\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Device Information",
+            "transformations": [
+              {
+                "id": "concatenate",
+                "options": {
+                  "frameNameLabel": "frame",
+                  "frameNameMode": "drop"
+                }
+              },
+              {
+                "id": "reduce",
+                "options": {
+                  "includeTimeField": false,
+                  "labelsToFields": true,
+                  "mode": "seriesToRows",
+                  "reducers": [
+                    "last"
+                  ]
+                }
+              },
+              {
+                "id": "organize",
+                "options": {
+                  "excludeByName": {
+                    "Device Name": true,
+                    "Device_id": true,
+                    "Field": false,
+                    "Metrics_type": true
+                  },
+                  "includeByName": {},
+                  "indexByName": {},
+                  "renameByName": {}
+                }
+              }
+            ],
+            "type": "table"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "decimals": 0,
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)"
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Threads System"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Running Threads"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 4,
+              "w": 2,
+              "x": 8,
+              "y": 5
+            },
+            "id": 25,
+            "maxDataPoints": 1000000,
+            "options": {
+              "colorMode": "background",
+              "graphMode": "area",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "value_and_name",
+              "wideLayout": true
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "E2kf7BY4k"
+                },
+                "dsType": "influxdb",
+                "groupBy": [
+                  {
+                    "params": [
+                      "$interval"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "params": [
+                      "null"
+                    ],
+                    "type": "fill"
+                  }
+                ],
+                "measurement": "processes",
+                "policy": "default",
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n    |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Threads\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n  |> yield(name: \"last\")",
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "total_threads"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "last"
+                    }
+                  ]
+                ],
+                "tags": [
+                  {
+                    "key": "host",
+                    "operator": "=~",
+                    "value": "/^$server$/"
+                  }
+                ]
+              }
+            ],
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "thresholds"
+                },
+                "decimals": 0,
+                "mappings": [
+                  {
+                    "options": {
+                      "match": "null",
+                      "result": {
+                        "text": "N/A"
+                      }
+                    },
+                    "type": "special"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "rgba(50, 172, 45, 0.97)"
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Threads System"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Running Threads"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 4,
+              "w": 2,
+              "x": 10,
+              "y": 5
+            },
+            "id": 26,
+            "maxDataPoints": 1000000,
+            "options": {
+              "colorMode": "background",
+              "graphMode": "area",
+              "justifyMode": "auto",
+              "orientation": "horizontal",
+              "reduceOptions": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "fields": "",
+                "values": false
+              },
+              "showPercentChange": false,
+              "textMode": "value_and_name",
+              "wideLayout": true
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "E2kf7BY4k"
+                },
+                "dsType": "influxdb",
+                "groupBy": [
+                  {
+                    "params": [
+                      "$interval"
+                    ],
+                    "type": "time"
+                  },
+                  {
+                    "params": [
+                      "null"
+                    ],
+                    "type": "fill"
+                  }
+                ],
+                "measurement": "processes",
+                "policy": "default",
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n    |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"Processes\")\r\n  |> aggregateWindow(every: v.windowPeriod, fn: last, createEmpty: false)\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n  |> yield(name: \"last\")",
+                "refId": "A",
+                "resultFormat": "time_series",
+                "select": [
+                  [
+                    {
+                      "params": [
+                        "total_threads"
+                      ],
+                      "type": "field"
+                    },
+                    {
+                      "params": [],
+                      "type": "last"
+                    }
+                  ]
+                ],
+                "tags": [
+                  {
+                    "key": "host",
+                    "operator": "=~",
+                    "value": "/^$server$/"
+                  }
+                ]
+              }
+            ],
+            "type": "stat"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 0,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 7,
+              "w": 16,
+              "x": 8,
+              "y": 9
+            },
+            "id": 17,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Memory\" or r[\"Metrics_type\"] == \"Processor\" or r[\"Metrics_type\"] == \"Disk\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"CpuProcessorUtility\" or r[\"_field\"] == \"MemoryUsagePercentage\")\r\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> keep(columns: [\"_time\", \"Device_id\", \"CpuProcessorUtility\", \"MemoryUsagePercentage\"])\r\n  |> rename(columns: {\r\n      \"_time\": \"Time\",\r\n      \"CpuProcessorUtility\": \"CPU Usage (%)\",\r\n      \"MemoryUsagePercentage\": \"Memory Usage (%)\"\r\n  })\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "CPU and Memory Utilization (%)",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 0,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 6,
+              "w": 16,
+              "x": 8,
+              "y": 16
+            },
+            "id": 35,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"ContextSwitchesPerSec\" )\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Context Switches",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "continuous-GrYlRd"
+                },
+                "custom": {
+                  "fillOpacity": 100,
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": false,
+                  "lineWidth": 1,
+                  "spanNulls": false
+                },
+                "mappings": [
+                  {
+                    "options": {
+                      "0": {
+                        "color": "green",
+                        "index": 0,
+                        "text": "Running"
+                      },
+                      "1": {
+                        "color": "dark-red",
+                        "index": 1,
+                        "text": "Stopped"
+                      },
+                      "Null": {
+                        "color": "dark-red",
+                        "index": 2,
+                        "text": "Stopped"
+                      }
+                    },
+                    "type": "value"
+                  }
+                ],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Value"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "."
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 3,
+              "w": 8,
+              "x": 0,
+              "y": 19
+            },
+            "id": 16,
+            "maxDataPoints": 1000000,
+            "options": {
+              "alignValue": "right",
+              "legend": {
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "width": 10
+              },
+              "mergeValues": true,
+              "rowHeight": 0,
+              "showValue": "auto",
+              "tooltip": {
+                "maxHeight": -1,
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "7.3.3",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "E2kf7BY4k"
+                },
+                "hide": false,
+                "query": "from(bucket: \"${Bucket}\")\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Memory\")\n  |> filter(fn: (r) => r[\"_field\"] == \"MemoryUsagePercentage\")\n\n  |> aggregateWindow(every: 1m, fn: last)\n  |> map(fn: (r) => ({\n        _time: r._time,\n        _measurement: r._measurement,\n        _field: r._field,\n        _value: if exists r._value then 0 else 1\n    }))\n  |> yield(name: \"uptime_on_off\")\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Laptop State",
+            "transformations": [
+              {
+                "id": "organize",
+                "options": {
+                  "excludeByName": {
+                    "CPU Total": false
+                  },
+                  "includeByName": {},
+                  "indexByName": {},
+                  "renameByName": {
+                    "CPU Total": ".",
+                    "MemoryUsagePercentage": "."
+                  }
+                }
+              }
+            ],
+            "type": "state-timeline"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  }
+                },
+                "mappings": [],
+                "unit": "none"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 8,
+              "x": 0,
+              "y": 22
+            },
+            "id": 4,
+            "options": {
+              "displayLabels": [
+                "value",
+                "name"
+              ],
+              "legend": {
+                "displayMode": "table",
+                "placement": "right",
+                "showLegend": false,
+                "values": [
+                  "value"
+                ]
+              },
+              "pieType": "donut",
+              "reduceOptions": {
+                "calcs": [],
+                "fields": "",
+                "values": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"NewDSS\") \r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) =>\r\n    r[\"EventSource\"] == \"Application Error\" or\r\n    r[\"EventSource\"] == \"Application Hang\" or\r\n    r[\"EventSource\"] == \"Microsoft-Windows-Kernel-Power\" or\r\n    r[\"EventSource\"] == \"Bugcheck\"\r\n  )\r\n  |> filter(fn: (r) => r[\"_field\"] == \"TimeGenerated\")\r\n  |> group(columns: [\"EventSource\"])\r\n  |> count()\r\n  |> keep(columns: [\"EventSource\", \"_value\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Event Logs Source",
+            "transformations": [
+              {
+                "id": "organize",
+                "options": {
+                  "excludeByName": {},
+                  "includeByName": {},
+                  "indexByName": {},
+                  "renameByName": {
+                    "_value Application Error": "Application Error"
+                  }
+                }
+              }
+            ],
+            "type": "piechart"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic"
+                },
+                "custom": {
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  }
+                },
+                "mappings": [],
+                "unit": "none"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 7,
+              "x": 8,
+              "y": 22
+            },
+            "id": 20,
+            "options": {
+              "displayLabels": [
+                "value",
+                "name"
+              ],
+              "legend": {
+                "displayMode": "table",
+                "placement": "right",
+                "showLegend": true,
+                "values": [
+                  "value"
+                ]
+              },
+              "pieType": "donut",
+              "reduceOptions": {
+                "calcs": [],
+                "fields": "",
+                "values": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.4.1",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) =>\r\n    r[\"EventSource\"] == \"Application Error\" or\r\n    r[\"EventSource\"] == \"Application Hang\" or\r\n    r[\"EventSource\"] == \"Microsoft-Windows-Kernel-Power\" or\r\n    r[\"EventSource\"] == \"Bugcheck\"\r\n  )\r\n  // grab only relevant fields\r\n  |> filter(fn: (r) => r[\"_field\"] == \"TimeGenerated\" or r[\"_field\"] == \"ApplicationName\")\r\n  // pivot to get both fields on the same row\r\n  |> pivot(rowKey: [\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  // now ApplicationName is in a real column!\r\n  |> group(columns: [\"ApplicationName\"])\r\n  |> count(column: \"TimeGenerated\")\r\n  |> rename(columns: { TimeGenerated: \"\" })\r\n  |> keep(columns: [\"ApplicationName\", \"\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Application Faults & Error",
+            "transformations": [
+              {
+                "id": "organize",
+                "options": {
+                  "excludeByName": {},
+                  "includeByName": {},
+                  "indexByName": {},
+                  "renameByName": {
+                    "_value Application Error": "Application Error"
+                  }
+                }
+              }
+            ],
+            "type": "piechart"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 9,
+              "x": 15,
+              "y": 22
+            },
+            "id": 6,
+            "options": {
+              "dedupStrategy": "none",
+              "enableLogDetails": true,
+              "prettifyLogMessage": false,
+              "showCommonLabels": false,
+              "showLabels": false,
+              "showTime": false,
+              "sortOrder": "Descending",
+              "wrapLogMessage": false
+            },
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "edgaf6tnp6gw0f"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) =>\r\n    r[\"EventSource\"] == \"Application Error\" or\r\n    r[\"EventSource\"] == \"Application Hang\" or\r\n    r[\"EventSource\"] == \"Microsoft-Windows-Kernel-Power\" or\r\n    r[\"EventSource\"] == \"Bugcheck\"\r\n  )\r\n  |> pivot(rowKey:[\"_time\"], columnKey: [\"_field\"], valueColumn: \"_value\")\r\n  |> filter(fn: (r) => exists r[\"Message\"] and exists r[\"EventID\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Event Logs",
+            "type": "logs"
+          }
+        ],
+        "title": "System Information",
+        "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 1
+        },
+        "id": 3,
+        "panels": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 70
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 10,
+              "w": 11,
+              "x": 0,
+              "y": 23
+            },
+            "id": 27,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"ProcessorTime\" or r[\"_field\"] == \"CpuUserModeTime\" or r[\"_field\"] == \"CpuKernelModeTime\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "CPU Time Breakdown",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 70
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 10,
+              "w": 13,
+              "x": 11,
+              "y": 23
+            },
+            "id": 36,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"CpuProcessorUtility\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "CPU Usage (%)",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "description": "",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 70
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 11,
+              "x": 0,
+              "y": 33
+            },
+            "id": 28,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Memory\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"MemoryUsagePercentage\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Memory Utilization %",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "description": "",
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 70
+                    }
+                  ]
+                },
+                "unit": "decgbytes"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 8,
+              "w": 13,
+              "x": 11,
+              "y": 33
+            },
+            "id": 29,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Memory\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"PhysicalUsedGB\" or r[\"_field\"] == \"PhysicalFreeGB\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Memory Usage (GB)",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    }
+                  ]
+                },
+                "unit": "percent"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 9,
+              "w": 11,
+              "x": 0,
+              "y": 41
+            },
+            "id": 30,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Disk\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"DiskSpaceUsagePercentage\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Disk Usage (%)",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": []
+            },
+            "gridPos": {
+              "h": 9,
+              "w": 13,
+              "x": 11,
+              "y": 41
+            },
+            "id": 37,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Disk\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"AvgDiskQueueLength\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "AvgDiskQueueLength",
+            "type": "timeseries"
+          }
+        ],
+        "title": "Time Series Overview",
+        "type": "row"
+      },
+      {
+        "collapsed": true,
+        "gridPos": {
+          "h": 1,
+          "w": 24,
+          "x": 0,
+          "y": 2
+        },
+        "id": 1,
+        "panels": [
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 70
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 9,
+              "w": 24,
+              "x": 0,
+              "y": 32
+            },
+            "id": 31,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) => r[\"_field\"] == \"ProcessorQueueLength\" )\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Processor Queue Length",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 70
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 9,
+              "w": 12,
+              "x": 0,
+              "y": 41
+            },
+            "id": 33,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"Threads\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Threads",
+            "type": "timeseries"
+          },
+          {
+            "datasource": {
+              "type": "influxdb",
+              "uid": "edgaf6tnp6gw0f"
+            },
+            "fieldConfig": {
+              "defaults": {
+                "color": {
+                  "mode": "palette-classic",
+                  "seriesBy": "max"
+                },
+                "custom": {
+                  "axisBorderShow": false,
+                  "axisCenteredZero": false,
+                  "axisColorMode": "text",
+                  "axisLabel": "",
+                  "axisPlacement": "auto",
+                  "barAlignment": 0,
+                  "drawStyle": "line",
+                  "fillOpacity": 3,
+                  "gradientMode": "hue",
+                  "hideFrom": {
+                    "legend": false,
+                    "tooltip": false,
+                    "viz": false
+                  },
+                  "insertNulls": 3600000,
+                  "lineInterpolation": "linear",
+                  "lineStyle": {
+                    "fill": "solid"
+                  },
+                  "lineWidth": 1,
+                  "pointSize": 8,
+                  "scaleDistribution": {
+                    "type": "linear"
+                  },
+                  "showPoints": "never",
+                  "spanNulls": true,
+                  "stacking": {
+                    "group": "A",
+                    "mode": "none"
+                  },
+                  "thresholdsStyle": {
+                    "mode": "off"
+                  }
+                },
+                "decimals": 2,
+                "fieldMinMax": false,
+                "mappings": [],
+                "thresholds": {
+                  "mode": "absolute",
+                  "steps": [
+                    {
+                      "color": "green"
+                    },
+                    {
+                      "color": "yellow",
+                      "value": 50
+                    },
+                    {
+                      "color": "dark-red",
+                      "value": 70
+                    }
+                  ]
+                },
+                "unit": "none"
+              },
+              "overrides": [
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "Memory Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "Memory Usage %"
+                    }
+                  ]
+                },
+                {
+                  "matcher": {
+                    "id": "byName",
+                    "options": "CPU Usage (%)"
+                  },
+                  "properties": [
+                    {
+                      "id": "displayName",
+                      "value": "CPU Usage %"
+                    }
+                  ]
+                }
+              ]
+            },
+            "gridPos": {
+              "h": 9,
+              "w": 12,
+              "x": 12,
+              "y": 41
+            },
+            "id": 34,
+            "maxDataPoints": 100000000,
+            "options": {
+              "legend": {
+                "calcs": [
+                  "lastNotNull"
+                ],
+                "displayMode": "list",
+                "placement": "bottom",
+                "showLegend": true,
+                "sortBy": "Mean",
+                "sortDesc": true
+              },
+              "tooltip": {
+                "mode": "single",
+                "sort": "none"
+              }
+            },
+            "pluginVersion": "10.2.2",
+            "targets": [
+              {
+                "datasource": {
+                  "type": "influxdb",
+                  "uid": "a8fd3aa3-45a9-44dc-8330-39758ac0d0dc"
+                },
+                "query": "from(bucket: \"${Bucket}\")\r\n  |> range(start: v.timeRangeStart, stop: v.timeRangeStop)\r\n  |> filter(fn: (r) => r[\"_measurement\"] == \"DevicePerformance\")\r\n  |> filter(fn: (r) => r[\"Device_id\"] == \"${Device}\")\r\n  |> filter(fn: (r) => r[\"Metrics_type\"] == \"Processor\")\r\n  |> filter(fn: (r) =>  r[\"_field\"] == \"Processes\")\r\n  |> drop(columns: [\"Metrics_type\",\"Device_id\"])\r\n",
+                "refId": "A"
+              }
+            ],
+            "title": "Processes",
+            "type": "timeseries"
+          }
+        ],
+        "title": "CPU Analysis",
+        "type": "row"
+      }
+    ],
+    "refresh": "",
+    "schemaVersion": 39,
+    "tags": [],
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "HGT-LP335",
+            "value": "HGT-LP335"
+          },
+          "datasource": {
+            "type": "influxdb",
+            "uid": "edgaf6tnp6gw0f"
+          },
+          "definition": "import \"influxdata/influxdb/schema\"\r\nschema.measurementTagValues(\r\n  bucket: \"${Bucket}\",\r\n  measurement: \"DevicePerformance\",\r\n  tag: \"Device_id\"\r\n)\r\n",
+          "hide": 0,
+          "includeAll": false,
+          "label": "Device",
+          "multi": false,
+          "name": "Device",
+          "options": [],
+          "query": "import \"influxdata/influxdb/schema\"\r\nschema.measurementTagValues(\r\n  bucket: \"${Bucket}\",\r\n  measurement: \"DevicePerformance\",\r\n  tag: \"Device_id\"\r\n)\r\n",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "type": "query"
+        },
+        {
+          "current": {
+            "selected": false,
+            "text": "NewDSS",
+            "value": "NewDSS"
+          },
+          "hide": 2,
+          "includeAll": false,
+          "label": "Bucket",
+          "multi": false,
+          "name": "Bucket",
+          "options": [
+            {
+              "selected": true,
+              "text": "NewDSS",
+              "value": "NewDSS"
+            }
+          ],
+          "query": "NewDSS",
+          "skipUrlSync": false,
+          "type": "custom"
+        }
+      ]
+    },
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "timezone": "browser",
+    "title": "Device Performance Dashboard",
+    "uid": "aee9kgl8ghzwgd",
+    "version": 56,
+    "weekStart": ""
+  }
